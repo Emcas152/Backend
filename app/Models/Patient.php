@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Patient extends Model
 {
@@ -28,6 +29,41 @@ class Patient extends Model
             'birthday' => 'date',
             'loyalty_points' => 'integer',
         ];
+    }
+
+    /**
+     * Mutators para sanitizar datos
+     */
+    protected function name(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value,
+            set: fn ($value) => strip_tags(trim($value)),
+        );
+    }
+
+    protected function email(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value,
+            set: fn ($value) => strtolower(strip_tags(trim($value))),
+        );
+    }
+
+    protected function phone(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value,
+            set: fn ($value) => $value ? strip_tags(trim($value)) : null,
+        );
+    }
+
+    protected function address(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value,
+            set: fn ($value) => $value ? strip_tags(trim($value)) : null,
+        );
     }
 
     public function user(): BelongsTo

@@ -45,11 +45,12 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'sku' => 'nullable|string|unique:products,sku',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'nullable|integer|min:0',
+            'name' => 'required|string|max:255|regex:/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_.]+$/',
+            'sku' => 'nullable|string|max:100|regex:/^[A-Z0-9\-]+$/|unique:products,sku',
+            'description' => 'nullable|string|max:2000',
+            'price' => 'required|numeric|min:0|max:999999.99',
+            'stock' => 'nullable|integer|min:0|max:999999',
+            'low_stock_alert' => 'nullable|integer|min:0|max:9999',
             'type' => 'required|in:product,service',
             'active' => 'boolean',
         ]);
@@ -76,11 +77,12 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'sku' => 'sometimes|nullable|string|unique:products,sku,' . $id,
-            'description' => 'nullable|string',
-            'price' => 'sometimes|required|numeric|min:0',
-            'stock' => 'nullable|integer|min:0',
+            'name' => 'sometimes|required|string|max:255|regex:/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_.]+$/',
+            'sku' => 'sometimes|nullable|string|max:100|regex:/^[A-Z0-9\-]+$/|unique:products,sku,' . $id,
+            'description' => 'nullable|string|max:2000',
+            'price' => 'sometimes|required|numeric|min:0|max:999999.99',
+            'stock' => 'nullable|integer|min:0|max:999999',
+            'low_stock_alert' => 'nullable|integer|min:0|max:9999',
             'type' => 'sometimes|required|in:product,service',
             'active' => 'boolean',
         ]);
@@ -113,15 +115,23 @@ class ProductController extends Controller
         }
 
         $validated = $request->validate([
-            'quantity' => 'required|integer',
+            'quantity' => 'required|integer|min:-999999|max:999999',
             'type' => 'required|in:add,subtract,set',
         ]);
 
         switch ($validated['type']) {
             case 'add':
+                $newStock = $product->stock + abs($validated['quantity']);
+                if ($newStock > 999999) {
+                    return response()->json(['message' => 'Stock excede límite máximo'], 400);
+                }
                 $product->increment('stock', abs($validated['quantity']));
                 break;
             case 'subtract':
+                $newStock = $product->stock - abs($validated['quantity']);
+                if ($newStock < 0) {
+                    return response()->json(['message' => 'Stock insuficiente'], 400);
+                }
                 $product->decrement('stock', abs($validated['quantity']));
                 break;
             case 'set':

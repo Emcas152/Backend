@@ -12,7 +12,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Middleware de seguridad global
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+        
+        // Sanitización XSS para todas las peticiones API
+        $middleware->appendToGroup('api', [
+            \App\Http\Middleware\SanitizeInput::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

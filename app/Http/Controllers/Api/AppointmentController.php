@@ -53,12 +53,25 @@ class AppointmentController extends Controller
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
             'staff_member_id' => 'nullable|exists:staff_members,id',
-            'appointment_date' => 'required|date',
-            'appointment_time' => 'required',
-            'service' => 'required|string|max:255',
+            'appointment_date' => 'required|date|after_or_equal:today',
+            'appointment_time' => 'required|date_format:H:i:s',
+            'service' => 'required|string|max:255|regex:/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_.]+$/',
             'status' => 'sometimes|in:scheduled,confirmed,completed,cancelled',
-            'notes' => 'nullable|string',
+            'notes' => 'nullable|string|max:2000',
         ]);
+
+        // Validar que no haya conflictos de horario
+        $existingAppointment = Appointment::where('staff_member_id', $validated['staff_member_id'])
+            ->where('appointment_date', $validated['appointment_date'])
+            ->where('appointment_time', $validated['appointment_time'])
+            ->where('status', '!=', 'cancelled')
+            ->first();
+
+        if ($existingAppointment) {
+            return response()->json([
+                'message' => 'Ya existe una cita en este horario'
+            ], 422);
+        }
 
         $appointment = Appointment::create($validated);
         $appointment->load(['patient', 'staffMember']);
@@ -85,12 +98,28 @@ class AppointmentController extends Controller
         $validated = $request->validate([
             'patient_id' => 'sometimes|required|exists:patients,id',
             'staff_member_id' => 'nullable|exists:staff_members,id',
-            'appointment_date' => 'sometimes|required|date',
-            'appointment_time' => 'sometimes|required',
-            'service' => 'sometimes|required|string|max:255',
+            'appointment_date' => 'sometimes|required|date|after_or_equal:today',
+            'appointment_time' => 'sometimes|required|date_format:H:i:s',
+            'service' => 'sometimes|required|string|max:255|regex:/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_.]+$/',
             'status' => 'sometimes|in:scheduled,confirmed,completed,cancelled',
-            'notes' => 'nullable|string',
+            'notes' => 'nullable|string|max:2000',
         ]);
+
+        // Validar que no haya conflictos de horario (excepto esta cita)
+        if (isset($validated['staff_member_id']) || isset($validated['appointment_date']) || isset($validated['appointment_time'])) {
+            $existingAppointment = Appointment::where('id', '!=', $id)
+                ->where('staff_member_id', $validated['staff_member_id'] ?? $appointment->staff_member_id)
+                ->where('appointment_date', $validated['appointment_date'] ?? $appointment->appointment_date)
+                ->where('appointment_time', $validated['appointment_time'] ?? $appointment->appointment_time)
+                ->where('status', '!=', 'cancelled')
+                ->first();
+
+            if ($existingAppointment) {
+                return response()->json([
+                    'message' => 'Ya existe una cita en este horario'
+                ], 422);
+            }
+        }
 
         $appointment->update($validated);
         $appointment->load(['patient', 'staffMember']);

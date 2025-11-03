@@ -57,11 +57,11 @@ class PatientController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:patients,email',
-            'phone' => 'nullable|string|max:20',
-            'birthday' => 'nullable|date',
-            'address' => 'nullable|string',
+            'name' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/',
+            'email' => 'required|email:rfc,dns|unique:patients,email|max:255',
+            'phone' => 'nullable|string|max:20|regex:/^[0-9+\-\s()]+$/',
+            'birthday' => 'nullable|date|before:today',
+            'address' => 'nullable|string|max:500',
         ]);
 
         $patient = Patient::create($validated);
@@ -106,11 +106,11 @@ class PatientController extends Controller
         $patient = Patient::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|unique:patients,email,' . $id,
-            'phone' => 'nullable|string|max:20',
-            'birthday' => 'nullable|date',
-            'address' => 'nullable|string',
+            'name' => 'sometimes|required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/',
+            'email' => 'sometimes|required|email:rfc,dns|unique:patients,email,' . $id . '|max:255',
+            'phone' => 'nullable|string|max:20|regex:/^[0-9+\-\s()]+$/',
+            'birthday' => 'nullable|date|before:today',
+            'address' => 'nullable|string|max:500',
         ]);
 
         $patient->update($validated);
@@ -137,9 +137,9 @@ class PatientController extends Controller
         $patient = Patient::findOrFail($id);
 
         $validated = $request->validate([
-            'photo' => 'required|image|max:5120', // 5MB max
+            'photo' => 'required|image|mimes:jpeg,jpg,png,webp|max:5120', // 5MB max
             'type' => 'required|in:before,after,other',
-            'notes' => 'nullable|string',
+            'notes' => 'nullable|string|max:1000',
         ]);
 
         $path = $request->file('photo')->store("patients/{$patient->id}/photos", 'public');
@@ -165,8 +165,8 @@ class PatientController extends Controller
         $patient = Patient::findOrFail($id);
 
         $validated = $request->validate([
-            'document' => 'required|file|max:10240', // 10MB max
-            'name' => 'required|string|max:255',
+            'document' => 'required|file|mimes:pdf,doc,docx,txt|max:10240', // 10MB max
+            'name' => 'required|string|max:255|regex:/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_.]+$/',
             'type' => 'required|in:consent,contract,prescription,lab_result,other',
             'requires_signature' => 'boolean',
         ]);
@@ -200,7 +200,7 @@ class PatientController extends Controller
         }
 
         $validated = $request->validate([
-            'signature' => 'required|file|max:2048', // Signature image
+            'signature' => 'required|file|image|mimes:png,jpg,jpeg|max:2048', // Signature image
         ]);
 
         $signaturePath = $request->file('signature')->store("patients/{$patientId}/signatures", 'public');
@@ -217,7 +217,7 @@ class PatientController extends Controller
         $patient = Patient::findOrFail($id);
 
         $validated = $request->validate([
-            'points' => 'required|integer|min:1',
+            'points' => 'required|integer|min:1|max:10000',
         ]);
 
         $patient->addLoyaltyPoints($validated['points']);
@@ -236,7 +236,7 @@ class PatientController extends Controller
         $patient = Patient::findOrFail($id);
 
         $validated = $request->validate([
-            'points' => 'required|integer|min:1',
+            'points' => 'required|integer|min:1|max:10000',
         ]);
 
         $success = $patient->redeemLoyaltyPoints($validated['points']);

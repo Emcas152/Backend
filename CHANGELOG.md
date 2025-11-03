@@ -1,3 +1,85 @@
+# Release Notes - CRM Spa Médico
+
+## [1.1.0] - 2025-11-03
+
+### 🔐 SEGURIDAD - Actualización Mayor
+
+#### ✅ Agregado
+
+**Middlewares de Seguridad:**
+- `SanitizeInput` - Sanitización automática de todas las entradas contra XSS
+- `SecurityHeaders` - Headers de seguridad en todas las respuestas HTTP
+
+**Mutators en Modelos:**
+- `User`, `Patient`, `Product`, `Appointment` - Sanitización automática antes de guardar
+
+**Documentación:**
+- `SECURITY.md` - Guía completa de seguridad (1,200+ líneas)
+- README actualizado con sección de seguridad
+
+#### 🔒 Mejorado
+
+**Validaciones Estrictas en Controladores:**
+- `AuthController` - Email RFC/DNS, passwords complejos, regex nombres
+- `PatientController` - MIME types, límites de tamaño, validación fotos/documentos
+- `ProductController` - Límites stock (999,999), validación SKU, prevención stock negativo
+- `AppointmentController` - Validación conflictos, fechas futuras, formato hora estricto
+
+**Protecciones Implementadas:**
+- ✅ XSS (Cross-Site Scripting)
+- ✅ SQL Injection
+- ✅ CSRF
+- ✅ Clickjacking
+- ✅ MIME Sniffing
+- ✅ File Upload Attacks
+- ✅ Mass Assignment
+
+#### 📊 Estadísticas
+- 11 archivos modificados
+- 3 archivos nuevos
+- ~1,200 líneas agregadas
+- 50+ validaciones
+- 12 mutators
+- 7 security headers
+
+---
+
+## [1.0.0] - 2025-10-31
+
+### Lanzamiento Inicial
+
+#### Funcionalidades Principales
+- Sistema CRM completo para spa médico
+- Gestión de pacientes (fotos, documentos, QR codes)
+- Sistema de citas con validación de horarios
+- Inventario de productos y servicios
+- Sistema POS (punto de venta)
+- Programa de lealtad con puntos
+- Dashboard con estadísticas
+- Sistema de roles (admin, doctor, staff, patient)
+- Filtrado de datos por doctor (trait FiltersByDoctor)
+- API RESTful completa (34 endpoints)
+
+#### Stack Técnico
+- Laravel 11
+- PHP 8.1+
+- MySQL 8.0+
+- Laravel Sanctum
+- 10 tablas en base de datos
+
+---
+
+## Tipos de Cambios
+
+- `Agregado` - Nueva funcionalidad
+- `Modificado` - Cambios en funcionalidad existente
+- `Deprecado` - Funcionalidad que será removida
+- `Removido` - Funcionalidad removida
+- `Reparado` - Bug fix
+- `Seguridad` - Vulnerabilidad reparada
+
+---
+
 # Release Notes
 
 ## [Unreleased](https://github.com/laravel/laravel/compare/v12.8.0...12.x)

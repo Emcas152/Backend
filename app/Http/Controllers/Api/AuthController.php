@@ -17,8 +17,8 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+            'email' => 'required|email:rfc,dns|max:255',
+            'password' => 'required|string|min:6|max:255',
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -43,12 +43,12 @@ class AuthController extends Controller
     public function registerPatient(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
-            'phone' => 'nullable|string|max:20',
-            'birthday' => 'nullable|date',
-            'address' => 'nullable|string',
+            'name' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/',
+            'email' => 'required|email:rfc,dns|max:255|unique:users,email',
+            'password' => 'required|string|min:8|max:255|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
+            'phone' => 'nullable|string|max:20|regex:/^[0-9+\-\s()]+$/',
+            'birthday' => 'nullable|date|before:today',
+            'address' => 'nullable|string|max:500',
         ]);
 
         // Create user
@@ -93,9 +93,9 @@ class AuthController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
+            'name' => 'required|string|max:255|regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/',
+            'email' => 'required|email:rfc,dns|max:255|unique:users,email',
+            'password' => 'required|string|min:8|max:255|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
             'role' => 'required|in:doctor,staff,admin',
         ]);
 

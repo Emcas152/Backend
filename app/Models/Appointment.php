@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Traits\FiltersByDoctor;
 
 class Appointment extends Model
@@ -23,6 +24,25 @@ class Appointment extends Model
     protected $casts = [
         'appointment_date' => 'date',
     ];
+
+    /**
+     * Mutators para sanitizar datos
+     */
+    protected function service(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value,
+            set: fn ($value) => strip_tags(trim($value)),
+        );
+    }
+
+    protected function notes(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value,
+            set: fn ($value) => $value ? strip_tags(trim($value)) : null,
+        );
+    }
 
     /**
      * Relación con el paciente
