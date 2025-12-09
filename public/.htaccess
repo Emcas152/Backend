@@ -13,6 +13,27 @@
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
+    # CORS: allow only specific origins (Hostalia/cPanel friendly)
+    <IfModule mod_setenvif.c>
+        # Add allowed origins here (add more with |separator). Keep localhost for development.
+        SetEnvIf Origin "^(https?://(localhost:4200|41252429\.servicio-online\.net))$" CORS_ALLOW_ORIGIN=$0
+    </IfModule>
+
+    <IfModule mod_headers.c>
+        # Only set CORS headers when the origin matched the SetEnvIf above
+        Header always set Access-Control-Allow-Origin "%{CORS_ALLOW_ORIGIN}e" env=CORS_ALLOW_ORIGIN
+        Header always set Access-Control-Allow-Credentials "true" env=CORS_ALLOW_ORIGIN
+        Header always set Access-Control-Allow-Methods "GET, POST, OPTIONS, PUT, DELETE" env=CORS_ALLOW_ORIGIN
+        Header always set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization, X-CSRF-TOKEN, X-XSRF-TOKEN" env=CORS_ALLOW_ORIGIN
+        Header always set Access-Control-Expose-Headers "Authorization" env=CORS_ALLOW_ORIGIN
+    </IfModule>
+
+    # Respond to OPTIONS preflight with 204 No Content to avoid 405 on cPanel/Apache
+    <IfModule mod_rewrite.c>
+        RewriteCond %{REQUEST_METHOD} =OPTIONS
+        RewriteRule ^ - [R=204,L]
+    </IfModule>
+
     # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
